@@ -86,8 +86,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes slam { from { transform: rotate(-20deg) scale(1.8); } to { transform: rotate(-4deg) scale(1); } }
 
 .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
-.ph { margin: 0; width: 210px; max-width: 100%; display: grid; gap: 6px; }
-.ph img { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: contain; background: #FFFFFF; border-radius: 10px; border: 1.5px solid var(--line); }
+.ph { margin: 0; width: 150px; max-width: 100%; display: grid; gap: 6px; }
+.ph img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: #FFFFFF; border-radius: 10px; border: 1.5px solid var(--line); }
 .ph figcaption { font-size: 14px; color: var(--muted); line-height: 1.25; }
 .ph figcaption b { font: 800 19px/1 var(--display); text-transform: uppercase; color: var(--ink); margin-right: 4px; }
 .thing { display: grid; gap: 6px; }
@@ -95,10 +95,33 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .yes .mark { color: var(--ok); } .no .mark { color: var(--red); }
 .thing.yes img { outline: 3px solid var(--ok); outline-offset: -1px; animation: hop .6s ease-out both; }
 .thing.no img { outline: 3px solid var(--red); outline-offset: -1px; animation: shake .6s ease-out both; }
+.part .mark { color: var(--warn); }
+.thing.part img { outline: 3px solid var(--warn); outline-offset: -1px; animation: hop .6s ease-out both; }
+button.thing { font: inherit; color: inherit; text-align: left; background: none; border: 0; padding: 6px; margin: -6px; border-radius: 14px; cursor: pointer; }
+button.thing:hover img { transform: translateY(-3px); }
+button.thing img { transition: transform .2s; }
+button.thing[aria-pressed="true"] { background: var(--paper); box-shadow: inset 0 0 0 2px var(--ink); }
+.try { font-size: 14px; color: var(--muted); }
+.try b { color: var(--ink); }
+.outlet { position: relative; display: grid; gap: 6px; align-content: start; }
+.outlet img { transition: opacity .3s, filter .3s; }
+.outlet .say { font-size: 14px; font-weight: 600; }
+.outlet.fit img { outline: 3px solid var(--ok); outline-offset: -1px; }
+.outlet.fit .say { color: var(--ok); }
+.outlet.nofit img { opacity: .45; filter: grayscale(1); }
+.outlet.nofit .say { color: var(--red); }
+.outlet.fit.go { animation: pop .45s ease-out; }
+.outlet.nofit.go { animation: shake .5s ease-out; }
+.zap { position: absolute; top: -10px; right: -10px; width: 34px; height: 34px; border-radius: 50%; background: var(--warn); border: 3px solid var(--card); display: grid; place-items: center; }
+.zap svg { width: 18px; height: 18px; fill: var(--card); }
+.outlet.nofit .zap { display: none; }
+.go .zap { animation: zap .45s .15s cubic-bezier(.2, 1.8, .4, 1) both; }
+@keyframes pop { 0% { transform: scale(.92); } 60% { transform: scale(1.06); } 100% { transform: none; } }
+@keyframes zap { from { transform: scale(0) rotate(-40deg); } to { transform: none; } }
 @keyframes hop { 0% { transform: translateY(0); } 40% { transform: translateY(-12px); } 70% { transform: translateY(2px); } 100% { transform: none; } }
 @keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px) rotate(-6deg); } 40% { transform: translateX(7px) rotate(6deg); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 .get { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: var(--paper); border-radius: 12px; padding: 12px 14px; }
-.get .ph { width: 160px; }
+.get .ph { width: 120px; }
 .get p { flex: 1 1 160px; }
 .get b { display: block; font-size: 16px; }
 .dev { display: grid; justify-items: center; gap: 4px; width: 84px; text-align: center; font-size: 13px; }
@@ -114,7 +137,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 details { background: var(--card); border-radius: 14px; padding: 14px 18px; }
 summary { cursor: pointer; font-weight: 600; }
 details p { margin-top: 10px; max-width: 64ch; font-size: 15px; }
-@media (prefers-reduced-motion: reduce) { .stamp, .thing img, .mk-pulse { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .stamp, .thing img, .mk-pulse, .outlet, .zap { animation: none !important; } }
 
 .mk { pointer-events: none; }
 .mk-pin { fill: var(--red); stroke: var(--card); stroke-width: 2.5; }
@@ -208,25 +231,27 @@ const names = new Intl.DisplayNames(['en'], { type: 'region' });
 const name = c => names.of(c);
 const flag = c => String.fromCodePoint(...[...c].map(ch => 127397 + ch.charCodeAt(0)));
 
-// Photos from Wikimedia Commons (plug + matching outlet where available). [file, common name, credit, license, source]
+// Common name per type. Photos (plugs/plug-X.jpg, plugs/outlet-X.jpg) are cropped from Wikimedia Commons images listed in CREDITS.
 const TYPE = {
-  A: ['A.jpg', 'US 2-pin', 'ArnoldReinhold', 'CC BY-SA 3.0', 'NEMA-1_plug_polarized.agr.jpg'],
-  B: ['B.jpg', 'US 3-pin', 'Conrad H. McGregor', 'Public domain', 'B_plug.jpg'],
-  C: ['C.jpg', 'Europlug', 'Wikimedia Commons', 'Public domain', 'C_plug.jpg'],
-  D: ['D.jpg', 'Indian / old British', 'Conrad H. McGregor', 'Public domain', 'D_plug.jpg'],
-  E: ['E.jpg', 'French', 'Looxix, Etienne Rastoul', 'CC BY-SA 3.0', 'E_plug_and_socket.jpg'],
-  F: ['F.png', 'German "Schuko"', 'Chameleon, bran & plugwash', 'Public domain', 'Schuko_plug_and_socket.png'],
-  G: ['G.png', 'British', 'Deucharman and others', 'Public domain', 'G_type_plug_and_socket.png'],
-  H: ['H.jpg', 'Israeli', 'Wikimedia Commons', 'Public domain', 'H_plug.jpg'],
-  I: ['I.jpg', 'Australian', 'Wikimedia Commons', 'Public domain', 'I_plug.jpg'],
-  J: ['J.jpg', 'Swiss', 'ZH8000, Filzstift', 'CC BY-SA 4.0', 'J_plug_-_1.jpg'],
-  K: ['K.jpg', 'Danish', 'Wikimedia Commons', 'Public domain', 'K_plug.jpg'],
-  L: ['L.jpg', 'Italian', 'Chameleon', 'Public domain', 'L_plug.jpg'],
-  M: ['M.jpg', 'South African (large)', 'Conrad H. McGregor', 'Public domain', 'M_plug.jpg'],
-  N: ['N.jpg', 'Brazilian', 'Fasouzafreitas', 'CC BY-SA 3.0', 'NBR_14136_plugs_and_outlet.jpg'],
-  O: ['O.jpg', 'Thai', 'Paul_012', 'CC BY-SA 3.0', 'Thai_TIS_166-2549_mains_plug.jpg'],
+  A: 'US 2-pin', B: 'US 3-pin', C: 'Europlug', D: 'Indian / old British', E: 'French', F: 'German "Schuko"', G: 'British',
+  H: 'Israeli', I: 'Australian', J: 'Swiss', K: 'Danish', L: 'Italian', M: 'South African (large)', N: 'Brazilian', O: 'Thai',
 };
-const pic = t => `<figure class="ph"><img src="plugs/${TYPE[t][0]}" alt="Type ${t} (${TYPE[t][1]}) plug and outlet" loading="lazy"><figcaption><b>Type ${t}</b>${TYPE[t][1]}</figcaption></figure>`;
+// [types, author, license, Commons file]
+const CREDITS = [
+  ['A', 'Shoestring (Wikivoyage)', 'Public domain', 'Type_A.png'],
+  ['B, D, M', 'Conrad H. McGregor', 'Public domain', 'B_plug.jpg'],
+  ['C', 'Wikimedia Commons', 'Public domain', 'C_plug.jpg'],
+  ['E', 'Looxix, Etienne Rastoul', 'CC BY-SA 3.0', 'E_plug_and_socket.jpg'],
+  ['F', 'Chameleon, bran & plugwash', 'Public domain', 'Schuko_plug_and_socket.png'],
+  ['G', 'Deucharman and others', 'Public domain', 'G_type_plug_and_socket.png'],
+  ['H, I, K', 'Wikimedia Commons', 'Public domain', 'H_plug.jpg'],
+  ['J', 'ZH8000, Filzstift', 'CC BY-SA 4.0', 'J_plug_-_1.jpg'],
+  ['L', 'Chameleon', 'Public domain', 'L_plug.jpg'],
+  ['N', 'Fasouzafreitas', 'CC BY-SA 3.0', 'NBR_14136_plugs_and_outlet.jpg'],
+  ['O plug', 'Paul_012', 'CC BY-SA 3.0', 'Thai_TIS_166-2549_mains_plug.jpg'],
+  ['O outlet', 'Peebidj', 'CC BY-SA 3.0', 'Thai_socket.jpg'],
+];
+const pic = (t, kind = 'plug') => `<figure class="ph"><img src="plugs/${kind}-${t}.jpg" alt="Type ${t} ${kind} (${TYPE[t]})" loading="lazy"><figcaption><b>Type ${t}</b>${TYPE[t]}</figcaption></figure>`;
 const ICON = {
   phone: '<rect x="7" y="2" width="10" height="20" rx="2.2"/><path d="M11 18.5h2"/>',
   laptop: '<rect x="4" y="4.5" width="16" height="11" rx="1.2"/><path d="M2 19h20"/>',
@@ -285,11 +310,12 @@ function renderResult() {
   const v = verdict(home, dest);
   const a = adapterFor(dest);
   const yourPlugs = home.plugs.map(p => {
-    const ok = fits(p, dest);
-    return `<div class="thing ${ok ? 'yes' : 'no'}">${pic(p)}<span class="mark">${ok ? '✓ Fits' : '✕ Doesn\'t fit'}</span></div>`;
+    const n = dest.plugs.filter(t => ACCEPTS[t].includes(p)).length, all = dest.plugs.length;
+    const [cls, mark] = n === all ? ['yes', all > 1 ? '✓ Fits every outlet' : '✓ Fits'] : n ? ['part', `◐ Fits ${n} of ${all} outlet types`] : ['no', '✕ Doesn\'t fit'];
+    return `<button type="button" class="thing ${cls}" data-plug="${p}" aria-pressed="false">${pic(p)}<span class="mark">${mark}</span></button>`;
   }).join('');
   const get = v === 'ok' ? '' : a
-    ? `<div class="get">${pic(a)}<p><b>Get a Type ${a} adapter</b><span class="small">Your plug goes in one side, these pins come out the other. Works in every outlet in ${there}.</span></p></div>`
+    ? `<div class="get"><p><b>Get a Type ${a} adapter (${TYPE[a]})</b><span class="small">It works in every outlet in ${there}.</span></p></div>`
     : `<div class="get"><p><b>Get a universal adapter</b><span class="small">${there} mixes several outlet shapes, and a universal adapter covers all of them.</span></p></div>`;
   const stamp = { ok: ['No', 'good'], some: ['Maybe', 'meh'], no: ['Yes', 'bad'] }[v];
 
@@ -309,8 +335,29 @@ function renderResult() {
       <div class="tile"><span class="q">Will my stuff work?</span><span class="stamp ${same ? 'good' : 'meh'}">${same ? 'Yes' : 'Chargers yes'}</span>
         <div class="row">${devices}</div>${volts}</div>
     </div>
-    <div class="outlets"><span class="small">Plugs and outlets you'll find in ${there}</span><div class="row">${dest.plugs.map(pic).join('')}</div></div>`;
+    <div class="outlets"><span class="q">Outlets in ${there}</span><p class="try" id="try"></p>
+      <div class="row">${dest.plugs.map(t => `<div class="outlet" data-t="${t}">${pic(t, 'outlet')}
+        <span class="zap" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="say"></span></div>`).join('')}</div></div>`;
+  if (!home.plugs.includes(sel)) sel = home.plugs[0];
+  tryPlug(sel, false);
 }
+
+// Tapping one of your plugs "tries" it in every outlet there: fits pop with a spark, misses shake and grey out.
+let sel;
+function tryPlug(p, animate = true) {
+  sel = p;
+  const multi = C[S.home].plugs.length > 1;
+  $('try').innerHTML = multi ? `Trying your <b>Type ${p}</b> plug. Tap your other plug above to switch.` : `Trying your <b>Type ${p}</b> plug.`;
+  $('result').querySelectorAll('[data-plug]').forEach(b => b.setAttribute('aria-pressed', b.dataset.plug === p));
+  $('result').querySelectorAll('.outlet').forEach(o => {
+    const ok = ACCEPTS[o.dataset.t].includes(p);
+    o.classList.remove('go', 'fit', 'nofit');
+    if (animate) void o.offsetWidth; // restart the animation
+    o.classList.add(ok ? 'fit' : 'nofit', 'go');
+    o.querySelector('.say').textContent = ok ? `✓ Your Type ${p} fits` : `✕ Your Type ${p} won't fit`;
+  });
+}
+$('result').onclick = e => { const p = e.target.closest('[data-plug]')?.dataset.plug; if (p) tryPlug(p); };
 
 const fields = [...document.querySelectorAll('.field')];
 const label = c => `${flag(c)} ${name(c)}`;
@@ -366,7 +413,7 @@ fields.forEach(f => {
   list.onmousedown = e => e.preventDefault();
   list.onclick = e => { e.stopPropagation(); const c = e.target.closest('[data-c]')?.dataset.c; if (c) choose(c); };
 });
-$('credits').innerHTML = 'Photos from Wikimedia Commons: ' + Object.entries(TYPE).map(([t, [, , by, lic, src]]) =>
+$('credits').innerHTML = 'Photos from Wikimedia Commons, cropped: ' + CREDITS.map(([t, by, lic, src]) =>
   `<a href="https://commons.wikimedia.org/wiki/File:${src}" target="_blank" rel="noopener">Type ${t}</a> by ${by.replace(/&/g, '&amp;')} (${lic})`).join(' · ') + '.';
 $('map').onclick = e => { const c = e.target.closest('[data-c]')?.dataset.c; if (C[c]) choose(c); };
 render();
