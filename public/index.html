@@ -85,11 +85,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .good { color: var(--ok); } .meh { color: var(--warn); } .bad { color: var(--red); }
 @keyframes slam { from { transform: rotate(-20deg) scale(1.8); } to { transform: rotate(-4deg) scale(1); } }
 
-.row { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
+.row { display: flex; flex-wrap: wrap; gap: 14px; align-items: start; }
 .ph { margin: 0; width: 150px; max-width: 100%; display: grid; gap: 6px; }
 .ph img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; background: #FFFFFF; border-radius: 10px; border: 1.5px solid var(--line); }
 .ph figcaption { font-size: 14px; color: var(--muted); line-height: 1.25; }
-.ph figcaption b { font: 800 19px/1 var(--display); text-transform: uppercase; color: var(--ink); margin-right: 4px; }
+.ph figcaption b { display: block; margin-bottom: 3px; font: 800 19px/1 var(--display); text-transform: uppercase; color: var(--ink); }
 .thing { display: grid; gap: 6px; }
 .thing .mark { font-weight: 700; font-size: 16px; }
 .yes .mark { color: var(--ok); } .no .mark { color: var(--red); }
